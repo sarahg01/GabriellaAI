@@ -8,3 +8,5 @@ build/
 .vercel
 *.log
 .DS_Store
+echo Git-2.54.0-64-bit.exe >> .gitignore
+git add .gitignore

@@ -1,18 +1,14 @@
 'use client';
-
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import AdminProductForm from '@/components/AdminProductForm';
+import { AdminProductForm } from '@/components/AdminProductForm';
 import Footer from '@/components/Footer';
-
 export default function AdminPage() {
   const router = useRouter();
-
   useEffect(() => {
     checkAdmin();
   }, []);
-
   const checkAdmin = async () => {
     const {
       data: { user },

@@ -2,7 +2,18 @@
 
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
-
+interface ProductFormData {
+  name: string;
+  description: string;
+  price: number;
+  image_url: string;
+  affiliate_url: string;
+  category: string;
+  youtube_review_url?: string;
+  brand: string;
+  price_links?: any[];  // Add this
+  review_links?: any[];  // Add this
+}
 interface ProductFormData {
   name: string;
   description: string;

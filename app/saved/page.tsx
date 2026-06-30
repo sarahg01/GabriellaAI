@@ -1,10 +1,10 @@
-import ExplorePage from '@/components/ExplorePage';
+import SavedPinsBoard from '@/components/SavedPinsBoard';
 import Footer from '@/components/Footer';
 
 export default function Page() {
   return (
     <>
-      <ExplorePage />
+      <SavedPinsBoard />
       <Footer />
     </>
   );

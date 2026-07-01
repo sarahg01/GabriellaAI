@@ -5,37 +5,26 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import ShareButton from './ShareButton';
 
-interface PriceLink {
-  label: string;
-  url: string;
-}
-
-interface ReviewLink {
-  label: string;
-  url: string;
-}
-
-interface Product {
-  id: string;
-  title: string;
-  brand: string;
-  description?: string;
-  image_url: string;
-  price_links: PriceLink[];
-  review_links: ReviewLink[];
-  buy_clicks: number;
-  review_clicks: number;
-}
-
 interface ProductCardProps {
-  product: Product;
+  product: {
+    id: string;
+    name: string;
+    brand: string;
+    description?: string | null;
+    price: number;
+    category: string;
+    image_url: string;
+    affiliate_url: string;
+    youtube_review_url?: string | null;
+    buy_clicks: number;
+    review_clicks: number;
+  };
   onSave?: (productId: string, isSaved: boolean) => void;
 }
 
 export default function ProductCard({ product, onSave }: ProductCardProps) {
   const [isSaved, setIsSaved] = useState(false);
   const [isLoadingSave, setIsLoadingSave] = useState(false);
-  const [showLinks, setShowLinks] = useState(false);
 
   useEffect(() => {
     checkIfSaved();
@@ -75,7 +64,6 @@ export default function ProductCard({ product, onSave }: ProductCardProps) {
       }
 
       if (isSaved) {
-        // Remove from saved pins
         await supabase
           .from('saved_pins')
           .delete()
@@ -84,7 +72,6 @@ export default function ProductCard({ product, onSave }: ProductCardProps) {
         setIsSaved(false);
         onSave?.(product.id, false);
       } else {
-        // Add to saved pins
         await supabase.from('saved_pins').insert({
           user_id: user.id,
           product_id: product.id,
@@ -100,13 +87,12 @@ export default function ProductCard({ product, onSave }: ProductCardProps) {
     }
   };
 
-  const handlePriceClick = async (url: string) => {
+  const handleBuyClick = async () => {
     try {
       const {
         data: { user },
       } = await supabase.auth.getUser();
 
-      // Log click
       if (user) {
         await supabase.from('clicks').insert({
           product_id: product.id,
@@ -115,21 +101,21 @@ export default function ProductCard({ product, onSave }: ProductCardProps) {
         });
       }
 
-      // Open link
-      window.open(url, '_blank');
+      window.open(product.affiliate_url, '_blank');
     } catch (err) {
       console.error('Error logging click:', err);
-      window.open(url, '_blank');
+      window.open(product.affiliate_url, '_blank');
     }
   };
 
-  const handleReviewClick = async (url: string) => {
+  const handleReviewClick = async () => {
+    if (!product.youtube_review_url) return;
+
     try {
       const {
         data: { user },
       } = await supabase.auth.getUser();
 
-      // Log click
       if (user) {
         await supabase.from('clicks').insert({
           product_id: product.id,
@@ -138,11 +124,10 @@ export default function ProductCard({ product, onSave }: ProductCardProps) {
         });
       }
 
-      // Open link
-      window.open(url, '_blank');
+      window.open(product.youtube_review_url, '_blank');
     } catch (err) {
       console.error('Error logging click:', err);
-      window.open(url, '_blank');
+      window.open(product.youtube_review_url, '_blank');
     }
   };
 
@@ -161,7 +146,7 @@ export default function ProductCard({ product, onSave }: ProductCardProps) {
       >
         <img
           src={product.image_url}
-          alt={product.title}
+          alt={product.name}
           style={{
             position: 'absolute',
             top: 0,
@@ -175,11 +160,15 @@ export default function ProductCard({ product, onSave }: ProductCardProps) {
 
       {/* Content */}
       <h3 style={{ fontSize: 'var(--font-size-lg)', marginBottom: 'var(--spacing-sm)' }}>
-        {product.title}
+        {product.name}
       </h3>
 
-      <p style={{ color: 'var(--color-gold)', fontWeight: '500', marginBottom: 'var(--spacing-md)' }}>
+      <p style={{ color: 'var(--color-gold)', fontWeight: '500', marginBottom: 'var(--spacing-sm)' }}>
         {product.brand}
+      </p>
+
+      <p style={{ color: 'var(--color-gold)', fontWeight: '500', marginBottom: 'var(--spacing-md)' }}>
+        ₹{product.price}
       </p>
 
       {product.description && (
@@ -204,49 +193,6 @@ export default function ProductCard({ product, onSave }: ProductCardProps) {
         {product.review_clicks > 0 && <span>⭐ {product.review_clicks} reviews</span>}
       </div>
 
-      {/* Links Section */}
-      <div style={{ marginBottom: 'var(--spacing-md)' }}>
-        {/* Price Links */}
-        <div style={{ marginBottom: 'var(--spacing-md)' }}>
-          <p style={{ fontSize: 'var(--font-size-sm)', fontWeight: '500', marginBottom: 'var(--spacing-sm)' }}>
-            💳 Price Links:
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
-            {product.price_links.map((link, idx) => (
-              <button
-                key={idx}
-                onClick={() => handlePriceClick(link.url)}
-                className="btn btn-primary btn-sm"
-                style={{ justifyContent: 'flex-start' }}
-              >
-                {link.label || 'View Price'} →
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Review Links */}
-        {product.review_links.length > 0 && (
-          <div style={{ marginBottom: 'var(--spacing-md)' }}>
-            <p style={{ fontSize: 'var(--font-size-sm)', fontWeight: '500', marginBottom: 'var(--spacing-sm)' }}>
-              📸 Reviews:
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
-              {product.review_links.map((link, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleReviewClick(link.url)}
-                  className="btn btn-secondary btn-sm"
-                  style={{ justifyContent: 'flex-start' }}
-                >
-                  {link.label || 'View Review'} →
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-
       {/* Actions */}
       <div
         style={{
@@ -257,16 +203,28 @@ export default function ProductCard({ product, onSave }: ProductCardProps) {
         }}
       >
         <button
+          onClick={handleBuyClick}
+          className="btn btn-primary btn-sm flex-1"
+        >
+          💳 Buy
+        </button>
+
+        {product.youtube_review_url && (
+          <button
+            onClick={handleReviewClick}
+            className="btn btn-secondary btn-sm flex-1"
+          >
+            📸 Review
+          </button>
+        )}
+
+        <button
           onClick={handleSaveToggle}
           disabled={isLoadingSave}
-          className={`btn btn-sm flex-1 ${isSaved ? 'btn-primary' : 'btn-ghost'}`}
+          className={`btn btn-sm ${isSaved ? 'btn-primary' : 'btn-ghost'}`}
         >
-          {isSaved ? '📌 Saved' : '📍 Save'}
+          {isSaved ? '📌' : '📍'}
         </button>
-        <ShareButton
-          productTitle={product.title}
-          productUrl={`${typeof window !== 'undefined' ? window.location.origin : ''}/product/${product.id}`}
-        />
       </div>
     </div>
   );

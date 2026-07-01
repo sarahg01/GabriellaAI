@@ -4,18 +4,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import ProductCard from './ProductCard';
-
-interface Product {
-  id: string;
-  title: string;
-  brand: string;
-  description?: string;
-  image_url: string;
-  price_links: any[];
-  review_links: any[];
-  buy_clicks: number;
-  review_clicks: number;
-}
+import type { Product } from '@/types/database';
 
 export default function ExplorePage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -65,7 +54,7 @@ export default function ExplorePage() {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(
         (p) =>
-          p.title.toLowerCase().includes(term) ||
+          p.name.toLowerCase().includes(term) ||
           p.brand.toLowerCase().includes(term) ||
           p.description?.toLowerCase().includes(term)
       );

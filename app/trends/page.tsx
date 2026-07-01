@@ -47,11 +47,11 @@ export default async function TrendsPage() {
                 </span>
                 <img
                   src={p.image_url}
-                  alt={p.title}
+                  alt={p.name}
                   className="h-14 w-14 shrink-0 rounded object-cover"
                 />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-display text-sm font-bold text-ink">{p.title}</p>
+                  <p className="truncate font-display text-sm font-bold text-ink">{p.name}</p>
                   <p className="font-mono text-xs uppercase tracking-wide text-ink/50">
                     {p.brand}
                   </p>

@@ -22,21 +22,4 @@ export interface Product {
   created_by: string | null;
   created_at: string;
 }
-export interface Product {
-  id: string;
-  name: string;
-  brand: string;
-  description: string | null;
-  price: number;
-  category: string;
-  image_url: string;
-  affiliate_url: string;
-  youtube_review_url: string | null;
-  price_links?: any[];      // ADD THIS
-  review_links?: any[];      // ADD THIS
-  buy_clicks: number;
-  review_clicks: number;
-  created_by: string | null;
-  created_at: string;
-}
 export type ClickType = "buy" | "review";

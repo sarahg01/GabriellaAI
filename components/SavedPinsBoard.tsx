@@ -4,18 +4,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import ProductCard from './ProductCard';
-
-interface Product {
-  id: string;
-  title: string;
-  brand: string;
-  description?: string;
-  image_url: string;
-  price_links: any[];
-  review_links: any[];
-  buy_clicks: number;
-  review_clicks: number;
-}
+import type { Product } from '@/types/database';
 
 interface SavedPin {
   id: string;
@@ -54,12 +43,14 @@ export default function SavedPinsBoard() {
           created_at,
           products (
             id,
-            title,
+            name,
             brand,
             description,
+            price,
+            category,
             image_url,
-            price_links,
-            review_links,
+            affiliate_url,
+            youtube_review_url,
             buy_clicks,
             review_clicks
           )

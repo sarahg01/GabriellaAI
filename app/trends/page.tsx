@@ -6,7 +6,7 @@ import type { Product } from "@/types/database";
 export const dynamic = "force-dynamic";
 
 export default async function TrendsPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const profile = await getCurrentProfile();
 
   const { data } = await supabase.from("products").select("*");

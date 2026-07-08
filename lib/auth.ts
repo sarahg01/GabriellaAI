@@ -7,7 +7,7 @@ import type { Profile } from "@/types/database";
  * what to render or whether to allow an action.
  */
 export async function getCurrentProfile(): Promise<Profile | null> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) return null;
 

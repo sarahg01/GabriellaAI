@@ -17,5 +17,19 @@ export async function getCurrentProfile(): Promise<Profile | null> {
     .eq("id", auth.user.id)
     .single();
 
-  return (profile as Profile) ?? null;
+  if (profile) return profile as Profile;
+
+  // Fallback so admin access can never silently break due to a missing
+  // profile row, a trigger that didn't fire, or an RLS issue — matches
+  // the hardcoded check already used in middleware.ts and admin pages.
+  if (auth.user.email === "sarahgabriel0001@gmail.com") {
+    return {
+      id: auth.user.id,
+      email: auth.user.email,
+      role: "admin",
+      created_at: auth.user.created_at,
+    } as Profile;
+  }
+
+  return null;
 }

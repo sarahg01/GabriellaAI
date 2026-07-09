@@ -3,6 +3,12 @@ import { NextResponse, type NextRequest } from "next/server";
 
 const PUBLIC_PATHS = ["/login", "/signup"];
 
+// You are always treated as admin, regardless of what the profiles table
+// says. This matches the rest of the app (admin pages already hardcode
+// this check) and means admin access can't silently break due to a
+// missing profile row, a stale session, or an RLS/trigger issue.
+const HARDCODED_ADMIN_EMAIL = "sarahgabriel0001@gmail.com";
+
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request: { headers: request.headers } });
 
@@ -43,14 +49,16 @@ export async function middleware(request: NextRequest) {
 
   // Admin-only area: confirm role before letting the request through.
   if (user && path.startsWith("/admin")) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
+    if (user.email !== HARDCODED_ADMIN_EMAIL) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
 
-    if (profile?.role !== "admin") {
-      return NextResponse.redirect(new URL("/explore", request.url));
+      if (profile?.role !== "admin") {
+        return NextResponse.redirect(new URL("/explore", request.url));
+      }
     }
   }
 

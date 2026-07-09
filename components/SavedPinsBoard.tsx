@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import ProductCard from './ProductCard';
-import type { Product } from '@/types/database';
+import type { Product, ProductLink } from '@/types/database';
 
 interface SavedPin {
   id: string;
@@ -15,6 +15,7 @@ interface SavedPin {
 
 export default function SavedPinsBoard() {
   const [savedPins, setSavedPins] = useState<SavedPin[]>([]);
+  const [linksByProduct, setLinksByProduct] = useState<Record<string, ProductLink[]>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -61,7 +62,24 @@ export default function SavedPinsBoard() {
 
       if (fetchError) throw fetchError;
 
-      setSavedPins((data as unknown as SavedPin[]) || []);
+      const pins = (data as unknown as SavedPin[]) || [];
+      setSavedPins(pins);
+
+      const productIds = pins.map((pin) => pin.product_id);
+      if (productIds.length > 0) {
+        const { data: linksData } = await supabase
+          .from('product_links')
+          .select('*')
+          .in('product_id', productIds)
+          .order('sort_order', { ascending: true });
+
+        const grouped: Record<string, ProductLink[]> = {};
+        (linksData || []).forEach((link) => {
+          if (!grouped[link.product_id]) grouped[link.product_id] = [];
+          grouped[link.product_id].push(link);
+        });
+        setLinksByProduct(grouped);
+      }
     } catch (err) {
       console.error('Error fetching saved pins:', err);
       setError('Failed to load saved pins');
@@ -121,6 +139,12 @@ export default function SavedPinsBoard() {
                 <ProductCard
                   key={pin.product_id}
                   product={pin.products}
+                  buyLinks={(linksByProduct[pin.product_id] || []).filter(
+                    (l) => l.link_type === 'buy'
+                  )}
+                  reviewLinks={(linksByProduct[pin.product_id] || []).filter(
+                    (l) => l.link_type === 'review'
+                  )}
                   onSave={handleRemovePin}
                 />
               ))}

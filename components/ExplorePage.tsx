@@ -4,11 +4,12 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import ProductCard from './ProductCard';
-import type { Product } from '@/types/database';
+import type { Product, ProductLink } from '@/types/database';
 
 export default function ExplorePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [linksByProduct, setLinksByProduct] = useState<Record<string, ProductLink[]>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBrand, setSelectedBrand] = useState('');
@@ -39,6 +40,23 @@ export default function ExplorePage() {
         new Set((data || []).map((p) => p.brand).filter(Boolean))
       ) as string[];
       setBrands(uniqueBrands.sort());
+
+      // Fetch all links for these products in one query and group by product_id
+      const productIds = (data || []).map((p) => p.id);
+      if (productIds.length > 0) {
+        const { data: linksData } = await supabase
+          .from('product_links')
+          .select('*')
+          .in('product_id', productIds)
+          .order('sort_order', { ascending: true });
+
+        const grouped: Record<string, ProductLink[]> = {};
+        (linksData || []).forEach((link) => {
+          if (!grouped[link.product_id]) grouped[link.product_id] = [];
+          grouped[link.product_id].push(link);
+        });
+        setLinksByProduct(grouped);
+      }
     } catch (err) {
       console.error('Error fetching products:', err);
     } finally {
@@ -124,7 +142,14 @@ export default function ExplorePage() {
         ) : (
           <div className="grid grid-3">
             {filteredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard
+                key={product.id}
+                product={product}
+                buyLinks={(linksByProduct[product.id] || []).filter((l) => l.link_type === 'buy')}
+                reviewLinks={(linksByProduct[product.id] || []).filter(
+                  (l) => l.link_type === 'review'
+                )}
+              />
             ))}
           </div>
         )}

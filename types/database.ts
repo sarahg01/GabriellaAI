@@ -23,3 +23,20 @@ export interface Product {
   created_at: string;
 }
 export type ClickType = "buy" | "review";
+
+export type LinkType = "buy" | "review";
+
+export interface ProductLink {
+  id: string;
+  product_id: string;
+  link_type: LinkType;
+  label: string | null;
+  url: string;
+  sort_order: number;
+  created_at: string;
+}
+
+export interface ProductLinks {
+  buy: ProductLink[];
+  review: ProductLink[];
+}

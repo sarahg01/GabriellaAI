@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import ShareButton from './ShareButton';
+import type { ProductLink } from '@/types/database';
 
 interface ProductCardProps {
   product: {
@@ -19,10 +20,26 @@ interface ProductCardProps {
     buy_clicks: number;
     review_clicks: number;
   };
+  // Full set of buy/review links for this product. When omitted or empty,
+  // falls back to the single affiliate_url / youtube_review_url fields for
+  // backward compatibility with products added before multi-link support.
+  buyLinks?: ProductLink[];
+  reviewLinks?: ProductLink[];
   onSave?: (productId: string, isSaved: boolean) => void;
 }
 
-export default function ProductCard({ product, onSave }: ProductCardProps) {
+export default function ProductCard({ product, buyLinks, reviewLinks, onSave }: ProductCardProps) {
+  const effectiveBuyLinks: { label: string; url: string }[] =
+    buyLinks && buyLinks.length > 0
+      ? buyLinks.map((l, i) => ({ label: l.label || `Buy${buyLinks.length > 1 ? ` (${i + 1})` : ''}`, url: l.url }))
+      : [{ label: 'Buy', url: product.affiliate_url }];
+
+  const effectiveReviewLinks: { label: string; url: string }[] =
+    reviewLinks && reviewLinks.length > 0
+      ? reviewLinks.map((l, i) => ({ label: l.label || `Review${reviewLinks.length > 1 ? ` (${i + 1})` : ''}`, url: l.url }))
+      : product.youtube_review_url
+      ? [{ label: 'Review', url: product.youtube_review_url }]
+      : [];
   const [isSaved, setIsSaved] = useState(false);
   const [isLoadingSave, setIsLoadingSave] = useState(false);
 
@@ -87,7 +104,7 @@ export default function ProductCard({ product, onSave }: ProductCardProps) {
     }
   };
 
-  const handleBuyClick = async () => {
+  const handleBuyClick = async (url: string) => {
     try {
       const {
         data: { user },
@@ -100,17 +117,14 @@ export default function ProductCard({ product, onSave }: ProductCardProps) {
           user_id: user.id,
         });
       }
-
-      window.open(product.affiliate_url, '_blank');
     } catch (err) {
       console.error('Error logging click:', err);
-      window.open(product.affiliate_url, '_blank');
+    } finally {
+      window.open(url, '_blank');
     }
   };
 
-  const handleReviewClick = async () => {
-    if (!product.youtube_review_url) return;
-
+  const handleReviewClick = async (url: string) => {
     try {
       const {
         data: { user },
@@ -123,11 +137,10 @@ export default function ProductCard({ product, onSave }: ProductCardProps) {
           user_id: user.id,
         });
       }
-
-      window.open(product.youtube_review_url, '_blank');
     } catch (err) {
       console.error('Error logging click:', err);
-      window.open(product.youtube_review_url, '_blank');
+    } finally {
+      window.open(url, '_blank');
     }
   };
 
@@ -202,21 +215,25 @@ export default function ProductCard({ product, onSave }: ProductCardProps) {
           paddingTop: 'var(--spacing-md)',
         }}
       >
-        <button
-          onClick={handleBuyClick}
-          className="btn btn-primary btn-sm flex-1"
-        >
-          💳 Buy
-        </button>
-
-        {product.youtube_review_url && (
+        {effectiveBuyLinks.map((link, i) => (
           <button
-            onClick={handleReviewClick}
+            key={`buy-${i}`}
+            onClick={() => handleBuyClick(link.url)}
+            className="btn btn-primary btn-sm flex-1"
+          >
+            💳 {link.label}
+          </button>
+        ))}
+
+        {effectiveReviewLinks.map((link, i) => (
+          <button
+            key={`review-${i}`}
+            onClick={() => handleReviewClick(link.url)}
             className="btn btn-secondary btn-sm flex-1"
           >
-            📸 Review
+            📸 {link.label}
           </button>
-        )}
+        ))}
 
         <button
           onClick={handleSaveToggle}

@@ -9,7 +9,7 @@ const PUBLIC_PATHS = ["/login", "/signup"];
 // missing profile row, a stale session, or an RLS/trigger issue.
 const HARDCODED_ADMIN_EMAIL = "sarahgabriel0001@gmail.com";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request: { headers: request.headers } });
 
   const supabase = createServerClient(

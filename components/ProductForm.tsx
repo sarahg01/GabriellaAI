@@ -159,9 +159,22 @@ export default function ProductForm({
         router.refresh();
       }, 600);
     } catch (err) {
+      const supabaseError = err as {
+        message?: string;
+        details?: string;
+        hint?: string;
+        code?: string;
+      };
+      const parts = [
+        supabaseError?.message,
+        supabaseError?.details,
+        supabaseError?.hint,
+        supabaseError?.code ? `(code: ${supabaseError.code})` : null,
+      ].filter(Boolean);
+
       setMessage({
         type: 'error',
-        text: `Error: ${err instanceof Error ? err.message : 'Unknown error'}`,
+        text: parts.length > 0 ? parts.join(' — ') : 'Unknown error (no message on the error object)',
       });
     } finally {
       setIsLoading(false);

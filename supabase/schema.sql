@@ -14,6 +14,25 @@ create table if not exists public.profiles (
 
 alter table public.profiles enable row level security;
 
+-- SECURITY DEFINER: lets this function read profiles for its own internal
+-- check without re-triggering RLS on profiles itself. Any policy (on
+-- profiles or any other table) that needs to check "is this user an admin?"
+-- should call this function rather than writing its own subquery on
+-- profiles — a subquery on profiles inside a policy ON profiles causes
+-- Postgres to recurse into that same policy forever ("infinite recursion
+-- detected in policy for relation 'profiles'", error 42P17).
+create or replace function public.is_admin()
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select exists (
+    select 1 from public.profiles where id = auth.uid() and role = 'admin'
+  );
+$$;
+
 drop policy if exists "profiles: read own row" on public.profiles;
 create policy "profiles: read own row"
   on public.profiles for select
@@ -22,9 +41,7 @@ create policy "profiles: read own row"
 drop policy if exists "profiles: admins read all" on public.profiles;
 create policy "profiles: admins read all"
   on public.profiles for select
-  using (
-    exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
-  );
+  using (public.is_admin());
 
 -- New users get a profile automatically. The very first person to ever sign
 -- up becomes an admin so there's always at least one admin account; everyone
@@ -86,21 +103,21 @@ drop policy if exists "products: admins can insert" on public.products;
 create policy "products: admins can insert"
   on public.products for insert
   with check (
-    exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
+    public.is_admin()
   );
 
 drop policy if exists "products: admins can update" on public.products;
 create policy "products: admins can update"
   on public.products for update
   using (
-    exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
+    public.is_admin()
   );
 
 drop policy if exists "products: admins can delete" on public.products;
 create policy "products: admins can delete"
   on public.products for delete
   using (
-    exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
+    public.is_admin()
   );
 
 -- ============================================================================
@@ -127,7 +144,7 @@ drop policy if exists "clicks: admins can read" on public.clicks;
 create policy "clicks: admins can read"
   on public.clicks for select
   using (
-    exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
+    public.is_admin()
   );
 
 -- Every click bumps the matching counter on the product. The function runs

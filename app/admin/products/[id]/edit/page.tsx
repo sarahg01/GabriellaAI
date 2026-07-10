@@ -3,12 +3,13 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/client';
 import ProductForm from '@/components/ProductForm';
 import Footer from '@/components/Footer';
 import type { Product, ProductLink } from '@/types/database';
 
 export default function EditProductPage() {
+  const supabase = createClient();
   const params = useParams();
   const productId = params.id as string;
 

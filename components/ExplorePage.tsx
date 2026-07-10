@@ -2,11 +2,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/client';
 import ProductCard from './ProductCard';
 import type { Product, ProductLink } from '@/types/database';
 
 export default function ExplorePage() {
+  const supabase = createClient();
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [linksByProduct, setLinksByProduct] = useState<Record<string, ProductLink[]>>({});

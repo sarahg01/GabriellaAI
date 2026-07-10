@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/client';
 import ShareButton from './ShareButton';
 import type { ProductLink } from '@/types/database';
 
@@ -28,7 +28,9 @@ interface ProductCardProps {
   onSave?: (productId: string, isSaved: boolean) => void;
 }
 
-export default function ProductCard({ product, buyLinks, reviewLinks, onSave }: ProductCardProps) {
+export default function ProductCard(
+  const supabase = createClient();
+  { product, buyLinks, reviewLinks, onSave }: ProductCardProps) {
   const effectiveBuyLinks: { label: string; url: string }[] =
     buyLinks && buyLinks.length > 0
       ? buyLinks.map((l, i) => ({ label: l.label || `Buy${buyLinks.length > 1 ? ` (${i + 1})` : ''}`, url: l.url }))

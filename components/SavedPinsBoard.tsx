@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/client';
 import ProductCard from './ProductCard';
 import type { Product, ProductLink } from '@/types/database';
 
@@ -14,6 +14,7 @@ interface SavedPin {
 }
 
 export default function SavedPinsBoard() {
+  const supabase = createClient();
   const [savedPins, setSavedPins] = useState<SavedPin[]>([]);
   const [linksByProduct, setLinksByProduct] = useState<Record<string, ProductLink[]>>({});
   const [isLoading, setIsLoading] = useState(true);

@@ -1,34 +1,19 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import Footer from '@/components/Footer';
 import type { Product } from '@/types/database';
 
 export default function AdminProductsPage() {
-  const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
-    checkAdminAndLoad();
+    fetchProducts();
   }, []);
-
-  const checkAdminAndLoad = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user || user.email !== 'sarahgabriel0001@gmail.com') {
-      router.push('/');
-      return;
-    }
-
-    await fetchProducts();
-  };
 
   const fetchProducts = async () => {
     setIsLoading(true);

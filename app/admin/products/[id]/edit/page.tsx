@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import ProductForm from '@/components/ProductForm';
@@ -9,7 +9,6 @@ import Footer from '@/components/Footer';
 import type { Product, ProductLink } from '@/types/database';
 
 export default function EditProductPage() {
-  const router = useRouter();
   const params = useParams();
   const productId = params.id as string;
 
@@ -20,19 +19,10 @@ export default function EditProductPage() {
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
-    checkAdminAndLoad();
+    loadProduct();
   }, [productId]);
 
-  const checkAdminAndLoad = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user || user.email !== 'sarahgabriel0001@gmail.com') {
-      router.push('/');
-      return;
-    }
-
+  const loadProduct = async () => {
     const [{ data: productData, error: productError }, { data: linksData }] = await Promise.all([
       supabase.from('products').select('*').eq('id', productId).single(),
       supabase

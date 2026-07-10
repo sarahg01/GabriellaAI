@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/client';
 import type { Product, ProductLink } from '@/types/database';
 
 interface LinkRow {
@@ -27,8 +27,7 @@ export default function ProductForm({
   initialBuyLinks,
   initialReviewLinks,
 }: ProductFormProps) {
-  const router = useRouter();
-
+const supabase = createClient();
   const [name, setName] = useState(initialProduct?.name ?? '');
   const [brand, setBrand] = useState(initialProduct?.brand ?? '');
   const [category, setCategory] = useState(initialProduct?.category ?? '');

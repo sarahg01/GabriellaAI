@@ -58,12 +58,14 @@ create trigger on_auth_user_created
 -- ============================================================================
 create table if not exists public.products (
   id uuid primary key default gen_random_uuid(),
-  title text not null,
+  name text not null,
   brand text not null default 'Unbranded',
   description text,
+  price numeric not null default 0,
+  category text not null default 'skincare',
   image_url text not null,
-  buy_link text not null,
-  review_link text,
+  affiliate_url text not null,
+  youtube_review_url text,
   buy_clicks integer not null default 0,
   review_clicks integer not null default 0,
   created_by uuid references public.profiles (id) on delete set null,

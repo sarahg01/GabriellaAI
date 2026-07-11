@@ -13,7 +13,7 @@ interface SavedPin {
   products: Product;
 }
 
-export default function SavedPinsBoard() {
+export default function SavedPinsBoard({ isAdmin = false }: { isAdmin?: boolean }) {
   const supabase = createClient();
   const [savedPins, setSavedPins] = useState<SavedPin[]>([]);
   const [linksByProduct, setLinksByProduct] = useState<Record<string, ProductLink[]>>({});
@@ -147,6 +147,7 @@ export default function SavedPinsBoard() {
                     (l) => l.link_type === 'review'
                   )}
                   onSave={handleRemovePin}
+                  isAdmin={isAdmin}
                 />
               ))}
             </div>

@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import ProductCard from './ProductCard';
 import type { Product, ProductLink } from '@/types/database';
 
-export default function ExplorePage() {
+export default function ExplorePage({ isAdmin = false }: { isAdmin?: boolean }) {
   const supabase = createClient();
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
@@ -123,6 +123,7 @@ export default function ExplorePage() {
                 reviewLinks={(linksByProduct[product.id] || []).filter(
                   (l) => l.link_type === 'review'
                 )}
+                isAdmin={isAdmin}
               />
             ))}
           </div>

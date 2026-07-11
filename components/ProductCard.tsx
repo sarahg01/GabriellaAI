@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import ShareButton from './ShareButton';
 import type { ProductLink } from '@/types/database';
@@ -26,9 +27,16 @@ interface ProductCardProps {
   buyLinks?: ProductLink[];
   reviewLinks?: ProductLink[];
   onSave?: (productId: string, isSaved: boolean) => void;
+  isAdmin?: boolean;
 }
 
-export default function ProductCard({ product, buyLinks, reviewLinks, onSave }: ProductCardProps) {
+export default function ProductCard({
+  product,
+  buyLinks,
+  reviewLinks,
+  onSave,
+  isAdmin,
+}: ProductCardProps) {
   const supabase = createClient();
   const effectiveBuyLinks: { label: string; url: string; price: number | null }[] =
     buyLinks && buyLinks.length > 0
@@ -174,6 +182,32 @@ export default function ProductCard({ product, buyLinks, reviewLinks, onSave }: 
             objectFit: 'cover',
           }}
         />
+
+        {isAdmin && (
+          <Link
+            href={`/admin/products/${product.id}/edit`}
+            aria-label={`Edit ${product.name}`}
+            title="Edit product"
+            style={{
+              position: 'absolute',
+              top: '10px',
+              right: '10px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '32px',
+              height: '32px',
+              borderRadius: '9999px',
+              backgroundColor: 'rgba(255, 255, 255, 0.92)',
+              color: 'var(--color-dark)',
+              boxShadow: 'var(--shadow-md)',
+              fontSize: '14px',
+              textDecoration: 'none',
+            }}
+          >
+            ✎
+          </Link>
+        )}
       </div>
 
       {/* Content */}

@@ -1,7 +1,13 @@
 import type { Product } from "@/types/database";
 import ProductCard from "@/components/ProductCard";
 
-export default function MasonryGrid({ products }: { products: Product[] }) {
+export default function MasonryGrid({
+  products,
+  isAdmin = false,
+}: {
+  products: Product[];
+  isAdmin?: boolean;
+}) {
   if (products.length === 0) {
     return (
       <div className="rounded-card border border-dashed border-mist py-16 text-center">
@@ -16,7 +22,7 @@ export default function MasonryGrid({ products }: { products: Product[] }) {
   return (
     <div className="masonry columns-1 sm:columns-2 lg:columns-3 xl:columns-4">
       {products.map((product) => (
-        <ProductCard key={product.id} product={product} />
+        <ProductCard key={product.id} product={product} isAdmin={isAdmin} />
       ))}
     </div>
   );

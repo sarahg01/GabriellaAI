@@ -11,7 +11,7 @@ export default async function Page() {
   return (
     <>
       <NavBar isAdmin={profile?.role === 'admin'} email={profile?.email ?? ''} />
-      <SavedPinsBoard />
+      <SavedPinsBoard isAdmin={profile?.role === 'admin'} />
       <Footer />
     </>
   );

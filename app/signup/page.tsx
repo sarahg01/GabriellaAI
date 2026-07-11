@@ -33,7 +33,7 @@ export default function SignupPage() {
     <div className="flex min-h-screen items-center justify-center bg-paper px-5">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <p className="font-display text-2xl font-bold text-ink">ProductBoard</p>
+          <p className="font-display text-2xl font-bold text-ink">GabriellaAI</p>
           <p className="mt-1 font-mono text-xs uppercase tracking-wide text-ink/50">
             Create an account
           </p>

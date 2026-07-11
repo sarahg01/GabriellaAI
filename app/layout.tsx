@@ -21,7 +21,7 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ProductBoard — Curated finds, reviewed",
+  title: "GabriellaAI — Curated finds, reviewed",
   description:
     "A curated board of products with buying links and video reviews.",
 };

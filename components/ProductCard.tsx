@@ -30,10 +30,14 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, buyLinks, reviewLinks, onSave }: ProductCardProps) {
   const supabase = createClient();
-  const effectiveBuyLinks: { label: string; url: string }[] =
+  const effectiveBuyLinks: { label: string; url: string; price: number | null }[] =
     buyLinks && buyLinks.length > 0
-      ? buyLinks.map((l, i) => ({ label: l.label || `Buy${buyLinks.length > 1 ? ` (${i + 1})` : ''}`, url: l.url }))
-      : [{ label: 'Buy', url: product.affiliate_url }];
+      ? buyLinks.map((l, i) => ({
+          label: l.label || `Buy${buyLinks.length > 1 ? ` (${i + 1})` : ''}`,
+          url: l.url,
+          price: l.price ?? null,
+        }))
+      : [{ label: 'Buy', url: product.affiliate_url, price: product.price ?? null }];
 
   const effectiveReviewLinks: { label: string; url: string }[] =
     reviewLinks && reviewLinks.length > 0
@@ -223,6 +227,9 @@ export default function ProductCard({ product, buyLinks, reviewLinks, onSave }: 
             className="btn btn-primary btn-sm flex-1"
           >
             💳 {link.label}
+            {link.price != null && (
+              <span style={{ marginLeft: '4px', fontWeight: 700 }}>· ₹{link.price}</span>
+            )}
           </button>
         ))}
 

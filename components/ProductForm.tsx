@@ -10,6 +10,7 @@ interface LinkRow {
   id?: string;
   label: string;
   url: string;
+  price: string;
 }
 
 interface ProductFormProps {
@@ -19,7 +20,7 @@ interface ProductFormProps {
   initialReviewLinks?: ProductLink[];
 }
 
-const emptyRow = (): LinkRow => ({ label: '', url: '' });
+const emptyRow = (): LinkRow => ({ label: '', url: '', price: '' });
 
 export default function ProductForm({
   mode,
@@ -38,12 +39,17 @@ const supabase = createClient();
 
   const [buyLinks, setBuyLinks] = useState<LinkRow[]>(
     initialBuyLinks && initialBuyLinks.length > 0
-      ? initialBuyLinks.map((l) => ({ id: l.id, label: l.label ?? '', url: l.url }))
+      ? initialBuyLinks.map((l) => ({
+          id: l.id,
+          label: l.label ?? '',
+          url: l.url,
+          price: l.price != null ? String(l.price) : '',
+        }))
       : [emptyRow()]
   );
   const [reviewLinks, setReviewLinks] = useState<LinkRow[]>(
     initialReviewLinks && initialReviewLinks.length > 0
-      ? initialReviewLinks.map((l) => ({ id: l.id, label: l.label ?? '', url: l.url }))
+      ? initialReviewLinks.map((l) => ({ id: l.id, label: l.label ?? '', url: l.url, price: '' }))
       : [emptyRow()]
   );
 
@@ -53,7 +59,7 @@ const supabase = createClient();
   function updateLink(
     which: 'buy' | 'review',
     index: number,
-    field: 'label' | 'url',
+    field: 'label' | 'url' | 'price',
     value: string
   ) {
     const setter = which === 'buy' ? setBuyLinks : setReviewLinks;
@@ -133,6 +139,7 @@ const supabase = createClient();
           link_type: 'buy' as const,
           label: r.label || null,
           url: r.url,
+          price: r.price.trim() ? parseFloat(r.price) : null,
           sort_order: i,
         })),
         ...cleanReviewLinks.map((r, i) => ({
@@ -140,6 +147,7 @@ const supabase = createClient();
           link_type: 'review' as const,
           label: r.label || null,
           url: r.url,
+          price: null,
           sort_order: i,
         })),
       ];
@@ -284,7 +292,7 @@ const supabase = createClient();
           <div className="form-group form-group--full">
             <label>Buy Links *</label>
             {buyLinks.map((row, i) => (
-              <div key={i} className="link-row">
+              <div key={i} className="link-row link-row--price">
                 <input
                   value={row.label}
                   onChange={(e) => updateLink('buy', i, 'label', e.target.value)}
@@ -297,6 +305,15 @@ const supabase = createClient();
                   placeholder="https://…"
                   type="url"
                   className="form-input link-url"
+                />
+                <input
+                  value={row.price}
+                  onChange={(e) => updateLink('buy', i, 'price', e.target.value)}
+                  placeholder="₹ Price"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  className="form-input link-price"
                 />
                 <button
                   type="button"
@@ -464,8 +481,13 @@ const supabase = createClient();
           margin-bottom: 8px;
         }
 
+        .link-row--price {
+          grid-template-columns: 1fr 1.6fr 0.8fr auto;
+        }
+
         .link-label,
-        .link-url {
+        .link-url,
+        .link-price {
           margin: 0;
         }
 

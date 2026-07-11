@@ -32,6 +32,7 @@ export interface ProductLink {
   link_type: LinkType;
   label: string | null;
   url: string;
+  price: number | null;
   sort_order: number;
   created_at: string;
 }

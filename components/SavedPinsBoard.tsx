@@ -147,6 +147,7 @@ export default function SavedPinsBoard({ isAdmin = false }: { isAdmin?: boolean 
                     (l) => l.link_type === 'review'
                   )}
                   onSave={handleRemovePin}
+                  onDelete={handleRemovePin}
                   isAdmin={isAdmin}
                 />
               ))}

@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import ProductCard from './ProductCard';
 import type { Product, ProductLink } from '@/types/database';
@@ -74,6 +75,10 @@ export default function ExplorePage({ isAdmin = false }: { isAdmin?: boolean }) 
     setFilteredProducts(filtered);
   };
 
+  const handleProductDeleted = (productId: string) => {
+    setProducts((prev) => prev.filter((p) => p.id !== productId));
+  };
+
   return (
     <div className="min-h-screen p-6 lg:pt-16">
       <div className="container">
@@ -83,6 +88,15 @@ export default function ExplorePage({ isAdmin = false }: { isAdmin?: boolean }) 
           <p style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-lg)' }}>
             Discover curated luxury beauty products
           </p>
+          {isAdmin && (
+            <Link
+              href="/admin/products/new"
+              className="btn btn-primary btn-sm"
+              style={{ display: 'inline-flex', marginTop: 'var(--spacing-md)' }}
+            >
+              + Add product
+            </Link>
+          )}
         </div>
 
         {/* Search */}
@@ -124,6 +138,7 @@ export default function ExplorePage({ isAdmin = false }: { isAdmin?: boolean }) 
                   (l) => l.link_type === 'review'
                 )}
                 isAdmin={isAdmin}
+                onDelete={handleProductDeleted}
               />
             ))}
           </div>

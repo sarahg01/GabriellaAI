@@ -27,6 +27,7 @@ interface ProductCardProps {
   buyLinks?: ProductLink[];
   reviewLinks?: ProductLink[];
   onSave?: (productId: string, isSaved: boolean) => void;
+  onDelete?: (productId: string) => void;
   isAdmin?: boolean;
 }
 
@@ -35,6 +36,7 @@ export default function ProductCard({
   buyLinks,
   reviewLinks,
   onSave,
+  onDelete,
   isAdmin,
 }: ProductCardProps) {
   const supabase = createClient();
@@ -55,6 +57,7 @@ export default function ProductCard({
       : [];
   const [isSaved, setIsSaved] = useState(false);
   const [isLoadingSave, setIsLoadingSave] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     checkIfSaved();
@@ -157,6 +160,25 @@ export default function ProductCard({
     }
   };
 
+  const handleDelete = async () => {
+    const confirmed = window.confirm(
+      `Delete "${product.name}"? This can't be undone — it'll also remove all its buy/review links.`
+    );
+    if (!confirmed) return;
+
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase.from('products').delete().eq('id', product.id);
+      if (error) throw error;
+      onDelete?.(product.id);
+    } catch (err) {
+      console.error('Error deleting product:', err);
+      alert("Couldn't delete this product. Only admins can delete products.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="card" style={{ overflow: 'hidden' }}>
       {/* Image */}
@@ -184,29 +206,59 @@ export default function ProductCard({
         />
 
         {isAdmin && (
-          <Link
-            href={`/admin/products/${product.id}/edit`}
-            aria-label={`Edit ${product.name}`}
-            title="Edit product"
+          <div
             style={{
               position: 'absolute',
               top: '10px',
               right: '10px',
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '32px',
-              height: '32px',
-              borderRadius: '9999px',
-              backgroundColor: 'rgba(255, 255, 255, 0.92)',
-              color: 'var(--color-dark)',
-              boxShadow: 'var(--shadow-md)',
-              fontSize: '14px',
-              textDecoration: 'none',
+              gap: '6px',
             }}
           >
-            ✎
-          </Link>
+            <Link
+              href={`/admin/products/${product.id}/edit`}
+              aria-label={`Edit ${product.name}`}
+              title="Edit product"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '32px',
+                height: '32px',
+                borderRadius: '9999px',
+                backgroundColor: 'rgba(255, 255, 255, 0.92)',
+                color: 'var(--color-dark)',
+                boxShadow: 'var(--shadow-md)',
+                fontSize: '14px',
+                textDecoration: 'none',
+              }}
+            >
+              ✎
+            </Link>
+            <button
+              onClick={handleDelete}
+              disabled={isDeleting}
+              aria-label={`Delete ${product.name}`}
+              title="Delete product"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '32px',
+                height: '32px',
+                borderRadius: '9999px',
+                border: 'none',
+                backgroundColor: 'rgba(255, 255, 255, 0.92)',
+                color: 'var(--color-error)',
+                boxShadow: 'var(--shadow-md)',
+                fontSize: '14px',
+                cursor: isDeleting ? 'default' : 'pointer',
+                opacity: isDeleting ? 0.6 : 1,
+              }}
+            >
+              {isDeleting ? '…' : '🗑'}
+            </button>
+          </div>
         )}
       </div>
 

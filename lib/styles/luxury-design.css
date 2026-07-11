@@ -2,18 +2,18 @@
 /* GabriellaAI Luxury Design System */
 
 :root {
-  /* Color Palette */
-  --color-blush-light: #f5e6e0;
-  --color-blush-medium: #fbd5c9;
-  --color-blush-dark: #f0c9c0;
-  --color-gold: #d4af37;
-  --color-gold-light: #e8d4a0;
-  --color-cream: #faf8f6;
-  --color-dark: #2d1b1b;
-  --color-text: #3d2424;
-  --color-text-light: #6b4d4d;
-  --color-border: #e8d4d4;
-  --color-success: #d4a574;
+  /* Color Palette — elegant rose / wine / rose-gold */
+  --color-blush-light: #fbeef0;
+  --color-blush-medium: #f3d9de;
+  --color-blush-dark: #e8bfc8;
+  --color-gold: #b76e79;
+  --color-gold-light: #d19aa4;
+  --color-cream: #fdf6f4;
+  --color-dark: #3d1b2e;
+  --color-text: #4a2530;
+  --color-text-light: #8c6470;
+  --color-border: #ead9dd;
+  --color-success: #6b9e78;
   --color-error: #c97070;
 
   /* Typography */

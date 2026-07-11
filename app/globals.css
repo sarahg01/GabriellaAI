@@ -7,13 +7,13 @@
 }
 
 body {
-  background-color: #e9e4d8;
-  color: #15302b;
+  background-color: #fbf1ef;
+  color: #3d1b2e;
 }
 
 /* Visible focus ring everywhere — keyboard users need this. */
 :focus-visible {
-  outline: 2px solid #c8862b;
+  outline: 2px solid #b76e79;
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -26,6 +26,17 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* Responsive filter row on the Explore page: stacked on phones, side-by-side from tablet up. */
+.filters-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 640px) {
+  .filters-grid {
+    grid-template-columns: 1fr 1fr;
   }
 }
 

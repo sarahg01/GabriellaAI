@@ -100,9 +100,8 @@ export default function ExplorePage() {
 
         {/* Filters */}
         <div
+          className="filters-grid"
           style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
             gap: 'var(--spacing-lg)',
             marginBottom: 'var(--spacing-2xl)',
             maxWidth: '600px',

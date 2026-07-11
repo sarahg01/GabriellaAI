@@ -7,13 +7,13 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Design tokens — see DESIGN.md
-        ink: "#15302B", // deep teal-black, primary text & dark surfaces
-        paper: "#E9E4D8", // warm stone canvas background
-        card: "#F6F2E9", // lighter card surface on the canvas
-        amber: "#C8862B", // primary accent — links, buttons, active states
-        clay: "#BB4D32", // secondary accent — "hot" / click indicators
-        mist: "#CFCABC", // borders, dividers, quiet UI
+        // Design tokens — elegant rose / wine / rose-gold palette
+        ink: "#3D1B2E", // deep wine-plum, primary text & dark surfaces
+        paper: "#FBF1EF", // soft blush-cream canvas background
+        card: "#FFFBFA", // near-white blush card surface
+        amber: "#B76E79", // rose gold — primary accent, links, buttons, active states
+        clay: "#8C3B4E", // deep raspberry — secondary accent, "hot" / click indicators
+        mist: "#EAD9DD", // dusty rose — borders, dividers, quiet UI
       },
       fontFamily: {
         display: ["var(--font-display)", "sans-serif"],

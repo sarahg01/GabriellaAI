@@ -1,15 +1,15 @@
 import '@/lib/styles/luxury-design.css';
 import type { Metadata } from "next";
-import { Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
+import { Cormorant_Garamond, Raleway, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const display = Space_Grotesk({
+const display = Cormorant_Garamond({
   subsets: ["latin"],
   variable: "--font-display",
-  weight: ["500", "700"],
+  weight: ["500", "600", "700"],
 });
 
-const body = Inter({
+const body = Raleway({
   subsets: ["latin"],
   variable: "--font-body",
 });

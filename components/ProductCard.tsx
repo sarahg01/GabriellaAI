@@ -28,9 +28,8 @@ interface ProductCardProps {
   onSave?: (productId: string, isSaved: boolean) => void;
 }
 
-export default function ProductCard(
+export default function ProductCard({ product, buyLinks, reviewLinks, onSave }: ProductCardProps) {
   const supabase = createClient();
-  { product, buyLinks, reviewLinks, onSave }: ProductCardProps) {
   const effectiveBuyLinks: { label: string; url: string }[] =
     buyLinks && buyLinks.length > 0
       ? buyLinks.map((l, i) => ({ label: l.label || `Buy${buyLinks.length > 1 ? ` (${i + 1})` : ''}`, url: l.url }))

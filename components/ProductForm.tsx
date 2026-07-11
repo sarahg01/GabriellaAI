@@ -28,6 +28,7 @@ export default function ProductForm({
   initialReviewLinks,
 }: ProductFormProps) {
 const supabase = createClient();
+  const router = useRouter();
   const [name, setName] = useState(initialProduct?.name ?? '');
   const [brand, setBrand] = useState(initialProduct?.brand ?? '');
   const [category, setCategory] = useState(initialProduct?.category ?? '');

@@ -47,7 +47,7 @@ export default function AdminProductsPage() {
 
   return (
     <>
-      <div style={{ minHeight: '100vh', padding: 'var(--spacing-lg)' }}>
+      <div className="min-h-screen p-6 lg:pt-16">
         <div className="container">
           <div
             style={{

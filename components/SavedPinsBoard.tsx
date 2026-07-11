@@ -94,7 +94,7 @@ export default function SavedPinsBoard() {
   };
 
   return (
-    <div style={{ padding: 'var(--spacing-lg)', minHeight: '100vh' }}>
+    <div className="min-h-screen p-6 lg:pt-16">
       <div className="container">
         {/* Header */}
         <div style={{ marginBottom: 'var(--spacing-2xl)' }}>

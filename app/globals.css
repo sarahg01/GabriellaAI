@@ -29,17 +29,6 @@ body {
   }
 }
 
-/* Responsive filter row on the Explore page: stacked on phones, side-by-side from tablet up. */
-.filters-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-}
-@media (min-width: 640px) {
-  .filters-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
 /* Pinterest-style masonry grid via CSS columns. */
 .masonry {
   column-gap: 1.25rem;

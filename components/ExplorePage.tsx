@@ -13,8 +13,6 @@ export default function ExplorePage() {
   const [linksByProduct, setLinksByProduct] = useState<Record<string, ProductLink[]>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedBrand, setSelectedBrand] = useState('');
-  const [brands, setBrands] = useState<string[]>([]);
 
   useEffect(() => {
     fetchProducts();
@@ -22,7 +20,7 @@ export default function ExplorePage() {
 
   useEffect(() => {
     filterProducts();
-  }, [products, searchTerm, selectedBrand]);
+  }, [products, searchTerm]);
 
   const fetchProducts = async () => {
     try {
@@ -35,12 +33,6 @@ export default function ExplorePage() {
       if (error) throw error;
 
       setProducts(data || []);
-
-      // Extract unique brands
-      const uniqueBrands = Array.from(
-        new Set((data || []).map((p) => p.brand).filter(Boolean))
-      ) as string[];
-      setBrands(uniqueBrands.sort());
 
       // Fetch all links for these products in one query and group by product_id
       const productIds = (data || []).map((p) => p.id);
@@ -79,16 +71,11 @@ export default function ExplorePage() {
       );
     }
 
-    // Brand filter
-    if (selectedBrand) {
-      filtered = filtered.filter((p) => p.brand === selectedBrand);
-    }
-
     setFilteredProducts(filtered);
   };
 
   return (
-    <div style={{ padding: 'var(--spacing-lg)', minHeight: '100vh' }}>
+    <div className="min-h-screen p-6 lg:pt-16">
       <div className="container">
         {/* Header */}
         <div style={{ marginBottom: 'var(--spacing-2xl)', textAlign: 'center' }}>
@@ -98,13 +85,11 @@ export default function ExplorePage() {
           </p>
         </div>
 
-        {/* Filters */}
+        {/* Search */}
         <div
-          className="filters-grid"
           style={{
-            gap: 'var(--spacing-lg)',
             marginBottom: 'var(--spacing-2xl)',
-            maxWidth: '600px',
+            maxWidth: '480px',
             margin: '0 auto var(--spacing-2xl)',
           }}
         >
@@ -116,17 +101,6 @@ export default function ExplorePage() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-          </div>
-          <div className="form-group">
-            <label>Brand</label>
-            <select value={selectedBrand} onChange={(e) => setSelectedBrand(e.target.value)}>
-              <option value="">All Brands</option>
-              {brands.map((brand) => (
-                <option key={brand} value={brand}>
-                  {brand}
-                </option>
-              ))}
-            </select>
           </div>
         </div>
 

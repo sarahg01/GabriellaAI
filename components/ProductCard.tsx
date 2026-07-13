@@ -297,10 +297,10 @@ export default function ProductCard({
         {product.review_clicks > 0 && <span>⭐ {product.review_clicks} reviews</span>}
       </div>
 
-      {/* Actions */}
+      {/* Actions — horizontally swipeable when there are more links than fit */}
       <div
+        className="flex snap-x snap-mandatory overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         style={{
-          display: 'flex',
           gap: 'var(--spacing-sm)',
           borderTop: '1px solid var(--color-border)',
           paddingTop: 'var(--spacing-md)',
@@ -310,7 +310,7 @@ export default function ProductCard({
           <button
             key={`buy-${i}`}
             onClick={() => handleBuyClick(link.url)}
-            className="btn btn-primary btn-sm flex-1"
+            className="btn btn-primary btn-sm shrink-0 snap-start whitespace-nowrap"
           >
             💳 {link.label}
             {link.price != null && (
@@ -323,7 +323,7 @@ export default function ProductCard({
           <button
             key={`review-${i}`}
             onClick={() => handleReviewClick(link.url)}
-            className="btn btn-secondary btn-sm flex-1"
+            className="btn btn-secondary btn-sm shrink-0 snap-start whitespace-nowrap"
           >
             📸 {link.label}
           </button>
@@ -332,7 +332,7 @@ export default function ProductCard({
         <button
           onClick={handleSaveToggle}
           disabled={isLoadingSave}
-          className={`btn btn-sm ${isSaved ? 'btn-primary' : 'btn-ghost'}`}
+          className={`btn btn-sm shrink-0 snap-start ${isSaved ? 'btn-primary' : 'btn-ghost'}`}
         >
           {isSaved ? '📌' : '📍'}
         </button>

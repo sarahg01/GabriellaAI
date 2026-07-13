@@ -1,7 +1,7 @@
 // components/ProductCard.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import ShareButton from './ShareButton';
@@ -58,6 +58,64 @@ export default function ProductCard({
   const [isSaved, setIsSaved] = useState(false);
   const [isLoadingSave, setIsLoadingSave] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Let laptop/desktop users scroll the actions row too — not just touch
+  // swipe. Plain mouse wheels only scroll vertically by default, and there's
+  // no drag-to-scroll without this, so we add both by hand.
+  const actionsRef = useRef<HTMLDivElement>(null);
+  const dragState = useRef({ isDragging: false, startX: 0, startScrollLeft: 0, moved: false });
+
+  // React's onWheel is passive by default, so preventDefault() inside it is
+  // silently ignored — a native listener is the only way to actually hijack
+  // the wheel and turn vertical scroll into horizontal movement here.
+  useEffect(() => {
+    const el = actionsRef.current;
+    if (!el) return;
+
+    const onWheelNative = (e: WheelEvent) => {
+      if (el.scrollWidth <= el.clientWidth) return;
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        e.preventDefault();
+        el.scrollLeft += e.deltaY;
+      }
+    };
+
+    el.addEventListener('wheel', onWheelNative, { passive: false });
+    return () => el.removeEventListener('wheel', onWheelNative);
+  }, []);
+
+  const handleActionsMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    const el = actionsRef.current;
+    if (!el) return;
+    dragState.current = {
+      isDragging: true,
+      startX: e.clientX,
+      startScrollLeft: el.scrollLeft,
+      moved: false,
+    };
+  };
+
+  const handleActionsMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const el = actionsRef.current;
+    if (!el || !dragState.current.isDragging) return;
+    const delta = e.clientX - dragState.current.startX;
+    if (Math.abs(delta) > 3) dragState.current.moved = true;
+    el.scrollLeft = dragState.current.startScrollLeft - delta;
+  };
+
+  const endActionsDrag = () => {
+    dragState.current.isDragging = false;
+  };
+
+  // After a real drag, swallow the click that would otherwise fire on the
+  // button the cursor happens to land on.
+  const handleActionsClickCapture = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (dragState.current.moved) {
+      e.preventDefault();
+      e.stopPropagation();
+      dragState.current.moved = false;
+    }
+  };
 
   useEffect(() => {
     checkIfSaved();
@@ -297,13 +355,21 @@ export default function ProductCard({
         {product.review_clicks > 0 && <span>⭐ {product.review_clicks} reviews</span>}
       </div>
 
-      {/* Actions — horizontally swipeable when there are more links than fit */}
+      {/* Actions — horizontally swipeable when there are more links than fit.
+          Supports touch swipe, trackpad swipe, mouse wheel, and click-drag. */}
       <div
+        ref={actionsRef}
+        onMouseDown={handleActionsMouseDown}
+        onMouseMove={handleActionsMouseMove}
+        onMouseUp={endActionsDrag}
+        onMouseLeave={endActionsDrag}
+        onClickCapture={handleActionsClickCapture}
         className="flex snap-x snap-mandatory overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         style={{
           gap: 'var(--spacing-sm)',
           borderTop: '1px solid var(--color-border)',
           paddingTop: 'var(--spacing-md)',
+          cursor: 'grab',
         }}
       >
         {effectiveBuyLinks.map((link, i) => (

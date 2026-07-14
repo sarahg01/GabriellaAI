@@ -31,12 +31,20 @@ export default async function AdminDashboard() {
             <h1 className="font-display text-2xl font-bold text-ink">Admin dashboard</h1>
             <p className="mt-1 text-sm text-ink/60">A quick read on what's on the board.</p>
           </div>
-          <Link
-            href="/admin/products/new"
-            className="rounded-full bg-amber px-4 py-2 font-mono text-xs font-medium uppercase tracking-wide text-paper hover:opacity-90"
-          >
-            + Add product
-          </Link>
+          <div className="flex gap-2">
+            <Link
+              href="/admin/trends"
+              className="rounded-full border border-ink/20 px-4 py-2 font-mono text-xs font-medium uppercase tracking-wide text-ink/80 hover:border-clay hover:text-clay"
+            >
+              Manage reels
+            </Link>
+            <Link
+              href="/admin/products/new"
+              className="rounded-full bg-amber px-4 py-2 font-mono text-xs font-medium uppercase tracking-wide text-paper hover:opacity-90"
+            >
+              + Add product
+            </Link>
+          </div>
         </div>
 
         <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-2">

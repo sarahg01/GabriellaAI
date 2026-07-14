@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth";
 import NavBar from "@/components/NavBar";
-import type { Product } from "@/types/database";
+import TrendPostCard from "@/components/TrendPostCard";
+import type { Product, ProductLink, TrendPost } from "@/types/database";
 
 export const dynamic = "force-dynamic";
 
@@ -16,13 +17,46 @@ export default async function TrendsPage() {
     .filter((p) => p.total > 0)
     .slice(0, 30);
 
+  const { data: trendPostsData } = await supabase
+    .from("trend_posts")
+    .select("*, product:products(*, links:product_links(*))")
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: false });
+
+  const trendPosts =
+    (trendPostsData as (TrendPost & {
+      product: (Product & { links: ProductLink[] }) | null;
+    })[]) ?? [];
+
   return (
     <div className="min-h-screen bg-paper">
       <NavBar isAdmin={profile?.role === "admin"} email={profile?.email ?? ""} />
 
       <main className="mx-auto max-w-3xl px-5 py-8">
+        {trendPosts.length > 0 && (
+          <div className="mb-10">
+            <div className="mb-6">
+              <h1 className="font-display text-2xl font-bold text-ink">Trending Reels</h1>
+              <p className="mt-1 text-sm text-ink/60">
+                Tap a reel to watch on Instagram, then shop the look below.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-6">
+              {trendPosts.map((post) => (
+                <TrendPostCard
+                  key={post.id}
+                  post={post}
+                  product={post.product}
+                  buyLinks={(post.product?.links ?? []).filter((l) => l.link_type === "buy")}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="mb-6">
-          <h1 className="font-display text-2xl font-bold text-ink">Trends</h1>
+          <h2 className="font-display text-2xl font-bold text-ink">Trends</h2>
           <p className="mt-1 text-sm text-ink/60">
             Ranked by combined buy and review clicks across everyone on the board.
           </p>

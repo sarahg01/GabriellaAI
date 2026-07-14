@@ -49,3 +49,14 @@ export interface ProductImage {
   sort_order: number;
   created_at: string;
 }
+
+export interface TrendPost {
+  id: string;
+  instagram_url: string;
+  caption: string | null;
+  product_id: string | null;
+  sort_order: number;
+  created_by: string | null;
+  created_at: string;
+}
+

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import type { Product, ProductLink, ProductImage } from '@/types/database';
@@ -62,6 +62,59 @@ const supabase = createClient();
 
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Draft autosave — survives accidental refresh/navigation while filling out the form.
+  const draftKey = `gabriellaai:product-draft:${mode}:${initialProduct?.id ?? 'new'}`;
+  const hasRestoredDraft = useRef(false);
+  const [draftRestored, setDraftRestored] = useState(false);
+
+  // Restore any saved draft once, on mount.
+  useEffect(() => {
+    if (hasRestoredDraft.current) return;
+    hasRestoredDraft.current = true;
+
+    try {
+      const saved = window.localStorage.getItem(draftKey);
+      if (!saved) return;
+      const draft = JSON.parse(saved);
+
+      setName(draft.name ?? '');
+      setBrand(draft.brand ?? '');
+      setCategory(draft.category ?? '');
+      setPrice(draft.price ?? '');
+      setDescription(draft.description ?? '');
+      if (Array.isArray(draft.images) && draft.images.length > 0) setImages(draft.images);
+      if (Array.isArray(draft.buyLinks) && draft.buyLinks.length > 0) setBuyLinks(draft.buyLinks);
+      if (Array.isArray(draft.reviewLinks) && draft.reviewLinks.length > 0)
+        setReviewLinks(draft.reviewLinks);
+
+      setDraftRestored(true);
+      // eslint-disable-next-line no-empty
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persist to localStorage on every change, once the initial restore attempt is done.
+  useEffect(() => {
+    if (!hasRestoredDraft.current) return;
+    try {
+      window.localStorage.setItem(
+        draftKey,
+        JSON.stringify({ name, brand, category, price, description, images, buyLinks, reviewLinks })
+      );
+    } catch {
+      // localStorage unavailable (private browsing, quota, etc.) — fail silently.
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [name, brand, category, price, description, images, buyLinks, reviewLinks]);
+
+  function clearDraft() {
+    try {
+      window.localStorage.removeItem(draftKey);
+    } catch {
+      // ignore
+    }
+  }
 
   function updateLink(
     which: 'buy' | 'review',
@@ -207,6 +260,8 @@ const supabase = createClient();
         text: mode === 'create' ? `✨ "${name}" added to Explore.` : `Saved changes to "${name}".`,
       });
 
+      clearDraft();
+
       setTimeout(() => {
         router.push('/admin/products');
         router.refresh();
@@ -244,6 +299,22 @@ const supabase = createClient();
 
         {message && (
           <div className={`form-message form-message--${message.type}`}>{message.text}</div>
+        )}
+
+        {draftRestored && !message && (
+          <div className="form-message form-message--draft">
+            Restored your unsaved changes from before the refresh.{' '}
+            <button
+              type="button"
+              className="draft-discard"
+              onClick={() => {
+                clearDraft();
+                window.location.reload();
+              }}
+            >
+              Discard draft
+            </button>
+          </div>
         )}
 
         <div className="form-grid">
@@ -486,6 +557,25 @@ const supabase = createClient();
           background-color: #fef2f2;
           color: #991b1b;
           border: 1px solid #fecaca;
+        }
+
+        .form-message--draft {
+          background-color: #fffaf0;
+          color: #9a6b1f;
+          border: 1px solid #f0dca0;
+        }
+
+        .draft-discard {
+          background: none;
+          border: none;
+          padding: 0;
+          margin-left: 4px;
+          color: #9a6b1f;
+          font-weight: 600;
+          text-decoration: underline;
+          cursor: pointer;
+          font-size: inherit;
+          font-family: inherit;
         }
 
         .form-grid {

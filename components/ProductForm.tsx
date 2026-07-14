@@ -340,14 +340,13 @@ const supabase = createClient();
           </div>
 
           <div className="form-group form-group--full">
-            <label htmlFor="description">Description *</label>
+            <label htmlFor="description">Description</label>
             <textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Product description, benefits, key ingredients..."
+              placeholder="Product description, benefits, key ingredients... (optional)"
               rows={4}
-              required
               className="form-input form-textarea"
             />
           </div>

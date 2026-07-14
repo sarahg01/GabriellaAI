@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import type { Product, ProductLink } from '@/types/database';
+import type { Product, ProductLink, ProductImage } from '@/types/database';
 
 interface LinkRow {
   // undefined id = not yet saved to product_links
@@ -18,15 +18,18 @@ interface ProductFormProps {
   initialProduct?: Product;
   initialBuyLinks?: ProductLink[];
   initialReviewLinks?: ProductLink[];
+  initialImages?: ProductImage[];
 }
 
 const emptyRow = (): LinkRow => ({ label: '', url: '', price: '' });
+const MAX_IMAGES = 10;
 
 export default function ProductForm({
   mode,
   initialProduct,
   initialBuyLinks,
   initialReviewLinks,
+  initialImages,
 }: ProductFormProps) {
 const supabase = createClient();
   const router = useRouter();
@@ -34,7 +37,11 @@ const supabase = createClient();
   const [brand, setBrand] = useState(initialProduct?.brand ?? '');
   const [category, setCategory] = useState(initialProduct?.category ?? '');
   const [price, setPrice] = useState(initialProduct?.price?.toString() ?? '');
-  const [imageUrl, setImageUrl] = useState(initialProduct?.image_url ?? '');
+  const [images, setImages] = useState<string[]>(
+    initialImages && initialImages.length > 0
+      ? initialImages.map((img) => img.image_url)
+      : [initialProduct?.image_url ?? '']
+  );
   const [description, setDescription] = useState(initialProduct?.description ?? '');
 
   const [buyLinks, setBuyLinks] = useState<LinkRow[]>(
@@ -76,6 +83,18 @@ const supabase = createClient();
     setter((rows) => (rows.length === 1 ? [emptyRow()] : rows.filter((_, i) => i !== index)));
   }
 
+  function updateImage(index: number, value: string) {
+    setImages((urls) => urls.map((u, i) => (i === index ? value : u)));
+  }
+
+  function addImage() {
+    setImages((urls) => (urls.length >= MAX_IMAGES ? urls : [...urls, '']));
+  }
+
+  function removeImage(index: number) {
+    setImages((urls) => (urls.length === 1 ? [''] : urls.filter((_, i) => i !== index)));
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setMessage(null);
@@ -84,6 +103,15 @@ const supabase = createClient();
     const cleanReviewLinks = reviewLinks
       .map((r) => ({ ...r, url: r.url.trim() }))
       .filter((r) => r.url);
+    const cleanImages = images
+      .map((u) => u.trim())
+      .filter(Boolean)
+      .slice(0, MAX_IMAGES);
+
+    if (cleanImages.length === 0) {
+      setMessage({ type: 'error', text: 'Add at least one product image.' });
+      return;
+    }
 
     if (cleanBuyLinks.length === 0) {
       setMessage({ type: 'error', text: 'Add at least one buy link.' });
@@ -98,7 +126,7 @@ const supabase = createClient();
         brand,
         category,
         price: parseFloat(price) || 0,
-        image_url: imageUrl,
+        image_url: cleanImages[0],
         description: description || null,
         // Kept in sync as the "primary" link for backward compatibility with
         // any code that still reads a single affiliate_url / youtube_review_url.
@@ -124,13 +152,30 @@ const supabase = createClient();
           .eq('id', productId);
         if (error) throw error;
 
-        // Simplest correct approach: replace all existing links with the
-        // current list rather than trying to diff row-by-row.
+        // Simplest correct approach: replace all existing links/images with
+        // the current list rather than trying to diff row-by-row.
         const { error: deleteError } = await supabase
           .from('product_links')
           .delete()
           .eq('product_id', productId);
         if (deleteError) throw deleteError;
+
+        const { error: deleteImagesError } = await supabase
+          .from('product_images')
+          .delete()
+          .eq('product_id', productId);
+        if (deleteImagesError) throw deleteImagesError;
+      }
+
+      const imageRows = cleanImages.map((url, i) => ({
+        product_id: productId,
+        image_url: url,
+        sort_order: i,
+      }));
+
+      if (imageRows.length > 0) {
+        const { error: imagesError } = await supabase.from('product_images').insert(imageRows);
+        if (imagesError) throw imagesError;
       }
 
       const linkRows = [
@@ -263,16 +308,35 @@ const supabase = createClient();
           </div>
 
           <div className="form-group form-group--full">
-            <label htmlFor="image_url">Image URL *</label>
-            <input
-              id="image_url"
-              type="url"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="https://example.com/product.jpg"
-              required
-              className="form-input"
-            />
+            <label>
+              Product Images * <span className="field-hint">({images.length}/{MAX_IMAGES})</span>
+            </label>
+            {images.map((url, i) => (
+              <div key={i} className="link-row link-row--image">
+                <input
+                  value={url}
+                  onChange={(e) => updateImage(i, e.target.value)}
+                  placeholder={
+                    i === 0 ? 'https://example.com/product.jpg (cover image)' : 'https://…'
+                  }
+                  type="url"
+                  className="form-input link-url"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeImage(i)}
+                  className="link-remove"
+                  aria-label="Remove image"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+            {images.length < MAX_IMAGES && (
+              <button type="button" onClick={addImage} className="link-add">
+                + Add another image
+              </button>
+            )}
           </div>
 
           <div className="form-group form-group--full">
@@ -483,6 +547,16 @@ const supabase = createClient();
 
         .link-row--price {
           grid-template-columns: 1fr 1.6fr 0.8fr auto;
+        }
+
+        .link-row--image {
+          grid-template-columns: 1fr auto;
+        }
+
+        .field-hint {
+          font-weight: 400;
+          color: var(--color-text-light, #8c6470);
+          font-size: 12px;
         }
 
         .link-label,

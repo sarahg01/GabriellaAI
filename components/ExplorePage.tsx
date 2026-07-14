@@ -5,13 +5,14 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import ProductCard from './ProductCard';
-import type { Product, ProductLink } from '@/types/database';
+import type { Product, ProductLink, ProductImage } from '@/types/database';
 
 export default function ExplorePage({ isAdmin = false }: { isAdmin?: boolean }) {
   const supabase = createClient();
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [linksByProduct, setLinksByProduct] = useState<Record<string, ProductLink[]>>({});
+  const [imagesByProduct, setImagesByProduct] = useState<Record<string, ProductImage[]>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -50,6 +51,19 @@ export default function ExplorePage({ isAdmin = false }: { isAdmin?: boolean }) 
           grouped[link.product_id].push(link);
         });
         setLinksByProduct(grouped);
+
+        const { data: imagesData } = await supabase
+          .from('product_images')
+          .select('*')
+          .in('product_id', productIds)
+          .order('sort_order', { ascending: true });
+
+        const groupedImages: Record<string, ProductImage[]> = {};
+        (imagesData || []).forEach((img) => {
+          if (!groupedImages[img.product_id]) groupedImages[img.product_id] = [];
+          groupedImages[img.product_id].push(img);
+        });
+        setImagesByProduct(groupedImages);
       }
     } catch (err) {
       console.error('Error fetching products:', err);
@@ -137,6 +151,7 @@ export default function ExplorePage({ isAdmin = false }: { isAdmin?: boolean }) 
                 reviewLinks={(linksByProduct[product.id] || []).filter(
                   (l) => l.link_type === 'review'
                 )}
+                images={imagesByProduct[product.id] || []}
                 isAdmin={isAdmin}
                 onDelete={handleProductDeleted}
               />

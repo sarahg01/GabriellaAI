@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import ProductForm from '@/components/ProductForm';
 import Footer from '@/components/Footer';
-import type { Product, ProductLink } from '@/types/database';
+import type { Product, ProductLink, ProductImage } from '@/types/database';
 
 export default function EditProductPage() {
   const supabase = createClient();
@@ -16,6 +16,7 @@ export default function EditProductPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [buyLinks, setBuyLinks] = useState<ProductLink[]>([]);
   const [reviewLinks, setReviewLinks] = useState<ProductLink[]>([]);
+  const [images, setImages] = useState<ProductImage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
@@ -24,10 +25,19 @@ export default function EditProductPage() {
   }, [productId]);
 
   const loadProduct = async () => {
-    const [{ data: productData, error: productError }, { data: linksData }] = await Promise.all([
+    const [
+      { data: productData, error: productError },
+      { data: linksData },
+      { data: imagesData },
+    ] = await Promise.all([
       supabase.from('products').select('*').eq('id', productId).single(),
       supabase
         .from('product_links')
+        .select('*')
+        .eq('product_id', productId)
+        .order('sort_order', { ascending: true }),
+      supabase
+        .from('product_images')
         .select('*')
         .eq('product_id', productId)
         .order('sort_order', { ascending: true }),
@@ -42,6 +52,7 @@ export default function EditProductPage() {
     setProduct(productData);
     setBuyLinks((linksData ?? []).filter((l) => l.link_type === 'buy'));
     setReviewLinks((linksData ?? []).filter((l) => l.link_type === 'review'));
+    setImages(imagesData ?? []);
     setIsLoading(false);
   };
 
@@ -80,6 +91,7 @@ export default function EditProductPage() {
               initialProduct={product}
               initialBuyLinks={buyLinks}
               initialReviewLinks={reviewLinks}
+              initialImages={images}
             />
           </div>
         </div>

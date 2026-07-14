@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import ShareButton from './ShareButton';
-import type { ProductLink } from '@/types/database';
+import type { ProductLink, ProductImage } from '@/types/database';
 
 interface ProductCardProps {
   product: {
@@ -26,6 +26,9 @@ interface ProductCardProps {
   // backward compatibility with products added before multi-link support.
   buyLinks?: ProductLink[];
   reviewLinks?: ProductLink[];
+  // Full image gallery (up to 10). Falls back to product.image_url alone
+  // when omitted or empty, for products added before gallery support.
+  images?: ProductImage[];
   onSave?: (productId: string, isSaved: boolean) => void;
   onDelete?: (productId: string) => void;
   isAdmin?: boolean;
@@ -35,11 +38,14 @@ export default function ProductCard({
   product,
   buyLinks,
   reviewLinks,
+  images,
   onSave,
   onDelete,
   isAdmin,
 }: ProductCardProps) {
   const supabase = createClient();
+  const effectiveImages: string[] =
+    images && images.length > 0 ? images.map((img) => img.image_url) : [product.image_url];
   const effectiveBuyLinks: { label: string; url: string; price: number | null }[] =
     buyLinks && buyLinks.length > 0
       ? buyLinks.map((l, i) => ({
@@ -58,6 +64,57 @@ export default function ProductCard({
   const [isSaved, setIsSaved] = useState(false);
   const [isLoadingSave, setIsLoadingSave] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // Swipeable image gallery — touch swipe works natively via overflow-x-auto,
+  // but we add mouse wheel + click-drag too so it works on laptop/desktop.
+  const galleryRef = useRef<HTMLDivElement>(null);
+  const galleryDragState = useRef({ isDragging: false, startX: 0, startScrollLeft: 0, moved: false });
+
+  useEffect(() => {
+    const el = galleryRef.current;
+    if (!el) return;
+
+    const onWheelNative = (e: WheelEvent) => {
+      if (el.scrollWidth <= el.clientWidth) return;
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        e.preventDefault();
+        el.scrollLeft += e.deltaY;
+      }
+    };
+
+    el.addEventListener('wheel', onWheelNative, { passive: false });
+    return () => el.removeEventListener('wheel', onWheelNative);
+  }, []);
+
+  const handleGalleryMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    const el = galleryRef.current;
+    if (!el) return;
+    galleryDragState.current = {
+      isDragging: true,
+      startX: e.clientX,
+      startScrollLeft: el.scrollLeft,
+      moved: false,
+    };
+  };
+
+  const handleGalleryMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const el = galleryRef.current;
+    if (!el || !galleryDragState.current.isDragging) return;
+    const delta = e.clientX - galleryDragState.current.startX;
+    if (Math.abs(delta) > 3) galleryDragState.current.moved = true;
+    el.scrollLeft = galleryDragState.current.startScrollLeft - delta;
+  };
+
+  const endGalleryDrag = () => {
+    galleryDragState.current.isDragging = false;
+  };
+
+  const handleGalleryScroll = () => {
+    const el = galleryRef.current;
+    if (!el || el.clientWidth === 0) return;
+    setCurrentImageIndex(Math.round(el.scrollLeft / el.clientWidth));
+  };
 
   // Let laptop/desktop users scroll the actions row too — not just touch
   // swipe. Plain mouse wheels only scroll vertically by default, and there's
@@ -250,18 +307,68 @@ export default function ProductCard({
           backgroundColor: 'var(--color-blush-light)',
         }}
       >
-        <img
-          src={product.image_url}
-          alt={product.name}
+        <div
+          ref={galleryRef}
+          onMouseDown={handleGalleryMouseDown}
+          onMouseMove={handleGalleryMouseMove}
+          onMouseUp={endGalleryDrag}
+          onMouseLeave={endGalleryDrag}
+          onScroll={handleGalleryScroll}
+          className="flex snap-x snap-mandatory overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           style={{
             position: 'absolute',
             top: 0,
             left: 0,
             width: '100%',
             height: '100%',
-            objectFit: 'cover',
+            cursor: effectiveImages.length > 1 ? 'grab' : 'default',
           }}
-        />
+        >
+          {effectiveImages.map((src, i) => (
+            <div
+              key={i}
+              className="shrink-0 snap-start"
+              style={{ width: '100%', height: '100%' }}
+            >
+              <img
+                src={src}
+                alt={`${product.name}${effectiveImages.length > 1 ? ` (${i + 1}/${effectiveImages.length})` : ''}`}
+                draggable={false}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            </div>
+          ))}
+        </div>
+
+        {effectiveImages.length > 1 && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '10px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              display: 'flex',
+              gap: '5px',
+              padding: '4px 8px',
+              borderRadius: '9999px',
+              backgroundColor: 'rgba(0, 0, 0, 0.25)',
+            }}
+          >
+            {effectiveImages.map((_, i) => (
+              <span
+                key={i}
+                style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '9999px',
+                  backgroundColor:
+                    i === currentImageIndex ? '#fff' : 'rgba(255, 255, 255, 0.45)',
+                  transition: 'background-color 0.15s ease',
+                }}
+              />
+            ))}
+          </div>
+        )}
 
         {isAdmin && (
           <div
